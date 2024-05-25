@@ -17,6 +17,8 @@ jobs:
         run: npm run test
   build:
     needs: test
+    outputs:
+      script-file-name: ${{steps.extract.outputs.script-file-name}}
     runs-on: ubuntu-latest
     steps:
       - name: Get code
@@ -25,6 +27,9 @@ jobs:
         run: npm ci
       - name: Build website
         run: npm run build
+      - name: extract script file name
+        id: extract
+        run: find dist/assets/*.js -type f -execdir echo 'script-file-name={} >> ${{github}}'
       - name: Extract deployment package
         uses: actions/upload-artifact@v3
         with:
@@ -35,6 +40,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: print java script file name
+        run: echo "${{needs.build.outputs.script-file-name}}"
       - name: download deployment package
         uses: actions/download-artifact@v3
         with:
